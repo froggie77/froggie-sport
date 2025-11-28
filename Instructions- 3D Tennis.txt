@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tennis Game - Instructions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-title {
+            font-size: 4em;
+            background: linear-gradient(45deg, #4CAF50, #2196F3, #FF9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.4em;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+        }
+
+        .step {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .step-title {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #2196F3;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .control-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .key {
+            display: inline-block;
+            background: #2a3a4a;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 2px solid #3a4a5a;
+            font-family: monospace;
+            font-weight: bold;
+            min-width: 60px;
+            font-size: 1.1em;
+        }
+
+        .targets-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .target-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .target-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            border: 3px solid white;
+        }
+
+        .target-points {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .target-difficulty {
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li::before {
+            content: '✅';
+        }
+
+        .system-requirements {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #FFC107;
+            margin: 20px 0;
+        }
+
+        .requirements-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .requirements-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .requirements-list li::before {
+            content: '💻';
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-play {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .btn-instructions {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .troubleshooting {
+            background: rgba(244, 67, 54, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #F44336;
