@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🏀 Basketball Shootout</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+        }
+        .game-container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        canvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            background: #8B4513;
+            margin: 10px 0;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .controls {
+            margin: 15px 0;
+        }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #ff8c42;
+            transform: scale(1.05);
+        }
+        .power-meter {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+            width: 0%;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏀 Basketball Shootout 🏀</h1>
+        
+        <div class="stats">
+            <div class="stat-box">Score: <span id="score">0</span></div>
+            <div class="stat-box">Shots: <span id="shots">0</span></div>
+            <div class="stat-box">Time: <span id="timer">60</span>s</div>
+        </div>
+
+        <div class="power-meter">
+            <div class="power-fill" id="powerFill"></div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        <div class="controls">
+            <button onclick="startCharging()">Hold to Charge POWER</button>
+            <button onclick="shootBall()">RELEASE to SHOOT!</button>
+            <button onclick="resetGame()">New Game</button>
+        </div>
+
+        <div class="instructions">
+            <p>🎯 <strong>How to Play:</strong> Hold charge button to build power, then release to shoot! Score baskets before time runs out!</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game variables
+        let score = 0;
+        let shots = 0;
+        let timeLeft = 60;
+        let gameRunning = true;
+        let chargePower = 0;
+        let isCharging = false;
+        let chargeInterval;
+        
+        // Ball properties
+        let ball = {
+            x: 100,
+            y: 400,
+            radius: 15,
+            dx: 0,
+            dy: 0,
+            color: '#FF8C00',
+            moving: false
+        };
+        
+        // Hoop properties
+        const hoop = {
+            x: 650,
+            y: 300,
+            width: 60,
+            height: 5,
+            backboardX: 700,
+            backboardHeight: 80
+        };
+        
+        function drawCourt() {
+            // Court background
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Court lines
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+            
+            // Free throw line
+            ctx.beginPath();
+            ctx.arc(200, 250, 100, 0, Math.PI, true);
+            ctx.stroke();
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(400, 250, 50, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        function drawHoop() {
+            // Backboard
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(hoop.backboardX, hoop.y - hoop.backboardHeight/2, 10, hoop.backboardHeight);
+            
+            // Rim
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(hoop.x, hoop.y, hoop.width, hoop.height);
+            
+            // Net (simplified)
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(hoop.x, hoop.y);
+            ctx.lineTo(hoop.x - 10, hoop.y + 20);
+            ctx.moveTo(hoop.x + hoop.width, hoop.y);
+            ctx.lineTo(hoop.x + hoop.width + 10, hoop.y + 20);
+            ctx.stroke();
+        }
+        
+        function drawBall() {
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ball lines
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(ball.x - ball.radius, ball.y);
+            ctx.lineTo(ball.x + ball.radius, ball.y);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y - ball.radius);
+            ctx.lineTo(ball.x, ball.y + ball.radius);
+            ctx.stroke();
+        }
+        
+        function updateBall() {
+            if (!ball.moving) return;
+            
+            // Apply gravity
+            ball.dy += 0.5;
+            
+            // Update position
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // Floor collision
+            if (ball.y + ball.radius > canvas.height - 50) {
+                ball.y = canvas.height - 50 - ball.radius;
+                ball.dy *= -0.6; // Bounce
+                ball.dx *= 0.9; // Friction
+                
+                // Stop ball if moving very slowly
+                if (Math.abs(ball.dy) < 2 && Math.abs(ball.dx) < 2) {
+                    ball.moving = false;
+                }
+            }
+            
+            // Wall collisions
+            if (ball.x - ball.radius < 50 || ball.x + ball.radius > canvas.width - 50) {
+                ball.dx *= -0.8;
+                ball.x = Math.max(ball.radius + 50, Math.min(canvas.width - 50 - ball.radius, ball.x));
+            }
+            
+            // Check for basket
+            checkBasket();
+        }
+        
+        function checkBasket() {
+            const inHoopX = ball.x > hoop.x && ball.x < hoop.x + hoop.width;
+            const inHoopY = ball.y > hoop.y - 10 && ball.y < hoop.y + 20;
+            const comingDown = ball.dy > 0;
+            
+            if (inHoopX && inHoopY && comingDown && ball.moving) {
+                score += 2;
+                shots++;
+                updateDisplay();
+                
+                // Reset ball
+                setTimeout(() => {
+                    resetBall();
+                    showMessage("🎉 SWISH! +2 Points!");
+                }, 500);
+            }
+        }
+        
+        function resetBall() {
+            ball.x = 100;
+            ball.y = 400;
+            ball.dx = 0;
+            ball.dy = 0;
+            ball.moving = false;
+        }
+        
+        function startCharging() {
+            if (ball.moving || !gameRunning) return;
+            
+            isCharging = true;
+            chargePower = 0;
+            
+            chargeInterval = setInterval(() => {
+                if (isCharging) {
+                    chargePower = Math.min(chargePower + 2, 100);
+                    document.getElementById('powerFill').style.width = chargePower + '%';
+                }
+            }, 50);
+        }
+        
+        function shootBall() {
+            if (!isCharging || ball.moving || !gameRunning) return;
+            
+            clearInterval(chargeInterval);
+            isCharging = false;
+            
+            // Calculate shot velocity based on charge power
+            const power = chargePower / 100;
+            const angle = Math.PI / 4; // 45 degrees
+            
+            ball.dx = Math.cos(angle) * (10 + power * 15);
+            ball.dy = -Math.sin(angle) * (10 + power * 15);
+            ball.moving = true;
+            
+            shots++;
+            updateDisplay();
+            
+            // Reset power meter
+            document.getElementById('powerFill').style.width = '0%';
+        }
+        
+        function showMessage(text) {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: gold;
+                padding: 20px;
+                border-radius: 10px;
+                font-size: 24px;
+                font-weight: bold;
+                z-index: 1000;
+            `;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 1500);
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('shots').textContent = shots;
+        }
+        
+        function gameLoop() {
+            drawCourt();
+            drawHoop();
+            updateBall();
+            drawBall();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function startGame() {
+            // Start timer
+            const timer = setInterval(() => {
+                if (gameRunning) {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        gameRunning = false;
+                        clearInterval(timer);
+                        showMessage("⏰ Game Over! Final Score: " + score);
+                    }
+                }
+            }, 1000);
+            
+            gameLoop();
+        }
+        
+        function resetGame() {
+            score = 0;
+            shots = 0;
+            timeLeft = 60;
+            gameRunning = true;
+            resetBall();
+            updateDisplay();
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('powerFill').style.width = '0%';
+        }
+        
+        // Start the game when page loads
+        window.onload = startGame;
+    </script>
+</body>
+</html>
