@@ -1,21 +1,7 @@
-How to use!
+IMPORTANT NOTICES! (READ BEFORE DOWNLOADING‼️)
 
+NEW UPDATES MIGHT BE IN LINK Below⬇️
+https://692ad99c49b7f.site123.me/
 
-Probably needs to quarantine the app, so go to Terminal and write- (for mac)
-
-xattr -d com.apple.quarantine 
-
-
-and then drag it into terminal and press enter. Don't forget at the end of quarantine, put a space
-
-
-
-
-Next and More!
-
-Coming out later in this year
-
-Featuring Soccer, Badminton, Tennis and more. 
-
-
-Download content from releases and choose the dmg version, the game is a HTML on Google Chrome.
+Resources-
+Download Link in 'Releases' in this page. (Be sure to find the one best fitting for your computer/device)
